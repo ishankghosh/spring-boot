@@ -1,0 +1,111 @@
+package com.unitTest.testdemo;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.startsWith;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.WebApplicationContext;
+
+import com.unitTest.testdemo.controller.InfoController;
+import com.unitTest.testdemo.model.DataModel;
+import com.unitTest.testdemo.service.PersonalDetailImpl;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+
+public class TestdemoApplicationTests {
+
+	@Mock
+	private RestTemplate restTemplate = new RestTemplate();
+	@Mock
+	InfoController infoControl;
+	@Mock
+	PersonalDetailImpl personalService;
+
+	@Mock
+	DataModel datam;
+
+	List<DataModel> personInfo = null;
+
+	@Autowired
+	private WebApplicationContext webAppContext;
+	private MockMvc mvc;
+	// private MockRestServiceServer mockServer;
+
+	/*
+	 * @Bean public RestTemplate restTemplate() { return new RestTemplate(); }
+	 */
+
+	@Before
+	public void init() {
+		MockitoAnnotations.initMocks(this);
+		this.mvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
+		// this.mockServer = MockRestServiceServer.bindTo(restTemplate).build();
+		/*ResponseEntity<List> myEntity = new ResponseEntity<List>(personInfo, HttpStatus.OK);
+
+		Mockito.when(restTemplate.exchange(any(URI.class), Mockito.eq(HttpMethod.POST),
+				Mockito.<HttpEntity<List>>any(), Mockito.<Class<List>>any())).thenReturn(myEntity);
+*/
+	}
+
+	@Test
+	public void testPersonInfo() throws Exception {
+		personInfo = Arrays.asList(new DataModel("first_name0", "last_name0", "address0"),
+				new DataModel("first_name1", "last_name1", "address1"),
+				new DataModel("first_name2", "last_name2", "address2"),
+				new DataModel("first_name3", "last_name3", "address3"));
+
+		when(personalService.addDetail(anyInt())).thenReturn(new ResponseEntity<List>(personInfo, HttpStatus.OK));
+		
+		/*personalService.execute(Mockito.anyString(), Mockito.any(), Mockito.any(), 
+                Mockito.any(), Mockito.any());
+*/
+		ResponseEntity<List> myEntity = new ResponseEntity<List>(personInfo, HttpStatus.OK);
+
+		/*Mockito.when(
+				this.restTemplate.exchange(Mockito.any(String.class),
+						Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class),
+						Mockito.any(Class.class))).thenReturn(myEntity);
+		*/
+		/*Mockito.when(restTemplate.exchange(anyString(), 
+				eq(HttpMethod.GET), any(HttpEntity.class), eq(List.class))).thenReturn(myEntity);
+*/
+		
+		when(restTemplate.exchange(
+				 Matchers.anyString(),
+				 Matchers.any(HttpMethod.class),
+				 Matchers.<HttpEntity<?>> any(), 
+				 Matchers.<Class<List>> any())).thenReturn(myEntity);
+		this.mvc.perform(get("/getInfo/" + anyInt())).andExpect(status().is2xxSuccessful());
+
+	}
+
+}
